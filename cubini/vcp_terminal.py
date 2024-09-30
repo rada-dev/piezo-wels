@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2009–2017 Wander Lairson Costa
 # Copyright 2009–2020 PyUSB contributors
 #
@@ -26,6 +27,7 @@
 #OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 # from https://github.com/pyusb/pyusb/blob/master/tools/vcp_terminal.py
 
 import os
@@ -47,6 +49,7 @@ CDC_CMDS = {
     "SET_CONTROL_LINE_STATE": 0x22,
     "SEND_BREAK": 0x23,   # wValue is break time
 }
+
 
 class ComPort(object):
 

@@ -4,9 +4,10 @@ A python library to control several Thorlabs' KPZ101 piezo controler cubes. Each
 ## Installation
 To install the package from source simply do
 ```
-git clone https://github.com/Schlabonski/cubini
-cd cubini
-python3 setup.py install
+sudo apt install libusb
+sudo apt install python-usb
+
+python2.7 setup.py install
 ```
 
 *Requirements*: This library works on top of `pyusb` which uses `libusb` so these should both be installed as well.
