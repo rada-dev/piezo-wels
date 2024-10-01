@@ -1,3 +1,5 @@
+raise AssertionError
+
 import time
 import numpy as np
 from cubini.KPZ101 import KPZ101
