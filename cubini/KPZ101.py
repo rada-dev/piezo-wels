@@ -1,7 +1,29 @@
+import struct
 import time
 import usb
 from vcp_terminal import ComPort
 from struct import pack
+
+# chyba v manualu kdyz poslu 16384 tak neukaze 50% ale 25%
+# The output position of the piezo relative to the zero
+# position. The voltage is set as a signed 16-bit integer in the
+# range 0 to 32767 (0 to 7FFF). This corresponds to 0 to 100%
+# of the maximum piezo extension.
+# The negative range (0x800 to FFFF) is not used at this time.
+
+# M GMSG_ PZ_SET_OUTPUTVOLTS
+# pisou ze -32k - +32k ze by se tam melo voltage posilat jako -100% - 100%
+# ale kdyz tam posilam unsigned short 0 - 65536 tak to dava normalne
+
+# jak poslat negativni napeti? kdyz poslu zapornej short tak to hodi max voltage
+# >>> struct.unpack("<h", '\x00\x80')
+# (-32768,)
+# >>> struct.unpack("<h", '\xFF\xFF')
+# (-1,)
+
+# v open loopu to jezdi, snulovano, 0V = 0um,
+# potrebujeme hub? mame to hadrwired sma position monitor
+# which input mode?
 
 
 class KPZ101(object):
@@ -38,7 +60,7 @@ class KPZ101(object):
     # 0x02  Closed Loop (feedback employed)
     # 0x03  Open Loop Smooth
     # 0x04  Closed Loop Smooth
-    POS_CONTROL_MODE = 0x04
+    POS_CONTROL_MODE = 0x02
 
     # The following values are entered into the VoltSrc parameter to select the various analog sources.
     # 0x00 Software Only: Unit responds only to software inputs and the HV amp output is that set using the SetVoltOutput method or via the GUI panel.
@@ -68,17 +90,17 @@ class KPZ101(object):
         
         time.sleep(.1)
         # open serial communication channel with the device
-        com = ComPort(usb_device=kpz)
+        self.com = ComPort(usb_device=kpz)
         
         # initialize FTDI chip according to APT documentation
-        com.setLineCoding(baudrate=115200, databits=8, stopbits=1)
+        self.com.setLineCoding(baudrate=115200, databits=8, stopbits=1)
+        time.sleep(.1)
         
         # Get HW info; MGMSG_HW_REQ_INFO; may be require by a K Cube to allow confirmation Rx messages
         # use the length of the response as a check for uncorrupted communication
         hw_info = self.get_hwinfo()
         assert len(hw_info) == 90, 'Communication corrupted for KPZ101 SN {}, response length {} != 90 bytes.'.format(serial_number, len(hw_info))
 
-        self.com = com
         time.sleep(0.1)
 
     def __del__(self):
@@ -89,9 +111,9 @@ class KPZ101(object):
         """
         MGMSG_HW_REQ_INFO 0x0005
         """
-        com.write(pack('<HBBBB', 0x0005, 0x00, 0x00, 0x50, 0x01))
+        self.com.write(pack('<HBBBB', 0x0005, 0x00, 0x00, 0x50, 0x01))
         time.sleep(0.1)
-        return com.readBytes()
+        return self.com.readBytes()
 
     def set_max_voltage(self):
         """
@@ -131,7 +153,7 @@ class KPZ101(object):
         """
         MGMSG_PZ_SET_POSCONTROLMODE 0x0640
         """
-        assert pos_control_mode in (0x01, 0x02, 0x03, 0x04), "Invalid control mode"
+        assert self.POS_CONTROL_MODE in (0x01, 0x02, 0x03, 0x04), "Invalid control mode"
         self.com.write(pack('<HBBBB', 0x0640, self.channel, self.POS_CONTROL_MODE, self.destination, self.source))
     
     def set_output_voltage(self, v):
@@ -166,8 +188,8 @@ class KPZ101(object):
         """
         MGMSG_PZ_SET_PICONSTS 0x0655
         """
-        assert 0 <= p <= 255, "Invalid value, accepted values 0-255"
-        assert 0 <= i <= 255, "Invalid value, accepted values 0-255"
+        assert 0 <= proportional <= 255, "Invalid value, accepted values 0-255"
+        assert 0 <= integral <= 255, "Invalid value, accepted values 0-255"
         self.com.write(pack('<HBBBBHHH', 0x0655, 0x06, 0x00, self.destination | 0x80, self.source, self.channel, proportional, integral))
 
 
@@ -178,6 +200,8 @@ def test():
     d.set_pos_control_mode()
     d.set_proportional_integral_terms(120, 120)
     d.enable_channel()
+    # d.set_output_voltage(0)
+    d.set_output_position(0)
     print d
 
 

@@ -165,6 +165,12 @@ class ComPort(object):
             rx.append(self._rxqueue.get())
         return rx
 
+    def readNBytes(self, n):
+        rx = []
+        while len(rx) < n:
+            rx.append(self._rxqueue.get())
+        return rx
+
     def readText(self):
         return "".join(chr(c) for c in self.readBytes())
 
