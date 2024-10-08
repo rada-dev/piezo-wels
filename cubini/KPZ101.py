@@ -4,27 +4,6 @@ import usb
 from vcp_terminal import ComPort
 from struct import pack
 
-# chyba v manualu kdyz poslu 16384 tak neukaze 50% ale 25%
-# The output position of the piezo relative to the zero
-# position. The voltage is set as a signed 16-bit integer in the
-# range 0 to 32767 (0 to 7FFF). This corresponds to 0 to 100%
-# of the maximum piezo extension.
-# The negative range (0x800 to FFFF) is not used at this time.
-
-# M GMSG_ PZ_SET_OUTPUTVOLTS
-# pisou ze -32k - +32k ze by se tam melo voltage posilat jako -100% - 100%
-# ale kdyz tam posilam unsigned short 0 - 65536 tak to dava normalne
-
-# jak poslat negativni napeti? kdyz poslu zapornej short tak to hodi max voltage
-# >>> struct.unpack("<h", '\x00\x80')
-# (-32768,)
-# >>> struct.unpack("<h", '\xFF\xFF')
-# (-1,)
-
-# v open loopu to jezdi, snulovano, 0V = 0um,
-# potrebujeme hub? mame to hadrwired sma position monitor
-# which input mode?
-
 
 class KPZ101(object):
 

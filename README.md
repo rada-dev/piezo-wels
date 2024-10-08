@@ -6,7 +6,6 @@ To install the package from source simply do
 ```
 sudo apt install libusb
 sudo apt install python-usb
-
 python2.7 setup.py install
 ```
 
